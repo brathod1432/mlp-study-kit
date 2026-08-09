@@ -22,8 +22,6 @@ Usage:
 
 from __future__ import annotations
 
-import sys
-
 import numpy as np
 
 
@@ -68,8 +66,10 @@ class ActivationFn:
         """
         key = name.strip().lower()
         if key not in self._dispatch:
-            sys.exit(f"[ActivationFn] Unknown activation '{name}'. "
-                     f"Supported: {list(self._dispatch)}")
+            raise ValueError(
+                f"[ActivationFn] Unknown activation '{name}'. "
+                f"Supported: {list(self._dispatch)}"
+            )
 
         fwd, deriv = self._dispatch[key]
 

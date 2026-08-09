@@ -19,8 +19,6 @@ Usage:
 
 from __future__ import annotations
 
-import sys
-
 import numpy as np
 
 
@@ -60,8 +58,10 @@ class LossFn:
         """
         key = name.strip().lower()
         if key not in self._dispatch:
-            sys.exit(f"[LossFn] Unknown loss '{name}'. "
-                     f"Supported: {list(self._dispatch)}")
+            raise ValueError(
+                f"[LossFn] Unknown loss '{name}'. "
+                f"Supported: {list(self._dispatch)}"
+            )
 
         fwd, deriv = self._dispatch[key]
         t = np.asarray(expected,  dtype=float)

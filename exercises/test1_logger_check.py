@@ -1,15 +1,14 @@
 #!/usr/bin/env python3.11
-import sys, os, argparse
+import sys
+import os
 import numpy as np
-# setting ENV as $pwd so current dir
-ENV = os.getcwd()
-sys.path.append(ENV)
-sys.path.append(ENV + '/modules/')
-sys.path.append(ENV + '/neural_networks/')
-sys.path.append(ENV + '/computer_vision/')
 
-from GeneralUtils import title_message
-from modules.logger import ObjLogger
+# Resolve nn_core package from src/ (works whether or not pip install -e . was run)
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+from nn_core.logger import ObjLogger, title_message
 
 def main():
     # Auto logger name from this file -> "Test1"

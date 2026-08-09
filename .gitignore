@@ -33,3 +33,34 @@ Thumbs.db
 # Docx / PDF generated outputs (kept in source only if explicitly added)
 *.docx
 *.pdf
+
+# Saved model weights / serialised data (can be large + reproducible from training)
+*.h5
+*.keras
+*.pt
+*.pth
+*.pkl
+*.pickle
+*.npy
+*.npz
+
+# TensorBoard / experiment tracking
+*.tfevents.*
+runs/
+wandb/
+mlruns/
+
+# Test / coverage outputs
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Editor swap files
+*.swp
+*.swo
+
+# Environment secrets -- NEVER commit .env
+.env
+
+# Compiled C extensions (built by some pip packages in-place)
+*.so

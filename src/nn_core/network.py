@@ -97,9 +97,6 @@ class NeuralNetwork:
             inp = layer["output"]
         return inp
 
-    def predict(self, nnetwork: list, inputs) -> list:
-        return [self.forward_propagate(nnetwork, np.asarray(x)) for x in inputs]
-
     # ------------------------------------------------------------------
     # Backward pass
     # ------------------------------------------------------------------
@@ -136,31 +133,48 @@ class NeuralNetwork:
     # ------------------------------------------------------------------
 
     def basic_early_stop(self, history_test: list, epsilon: float) -> bool:
-        """Return True if test loss improved by more than epsilon last epoch."""
-        return (history_test[-2] - history_test[-1]) > epsilon
+        """Return True when test-loss improvement has dropped below epsilon (plateau detected).
+
+        Logic:
+            improvement = previous_loss - current_loss
+            if improvement < epsilon  →  loss is stalling → stop
+        """
+        improvement = history_test[-2] - history_test[-1]
+        return improvement < epsilon
 
     # ------------------------------------------------------------------
     # Training loop
     # ------------------------------------------------------------------
 
+    def predict(self, nnetwork: list, inputs: list | np.ndarray) -> list:
+        return [self.forward_propagate(nnetwork, np.asarray(x)) for x in inputs]
+
     def train(
         self,
         nnetwork: list,
-        x_train,
-        y_train,
-        x_test=None,
-        y_test=None,
+        x_train: list | np.ndarray,
+        y_train: list | np.ndarray,
+        x_test:  list | np.ndarray | None = None,
+        y_test:  list | np.ndarray | None = None,
         l_rate: float = 0.01,
         n_epoch: int = 100,
         loss_function: str = "mse",
         epsilon: float = 0.0,
         verbose: int = 1,
+        save_plot: str | None = None,
     ) -> float:
         """
         Train for up to n_epoch epochs with optional early stopping.
 
-        If x_test / y_test are not supplied, only train loss is tracked.
-        epsilon > 0 enables early stopping on test loss.
+        Args:
+            x_train / y_train: training data.
+            x_test  / y_test:  optional test data; enables early stopping when also
+                               epsilon > 0.
+            epsilon:  stop when test-loss improvement per epoch falls below this
+                      value (0 = disabled).
+            verbose:  1 = print per-epoch loss + show plot; 0 = silent.
+            save_plot: if set, saves the loss-history plot to this path instead of
+                       blocking with plt.show().
         """
         history_train: list[float] = []
         history_test:  list[float] = []
@@ -214,6 +228,11 @@ class NeuralNetwork:
             plt.title("Training history")
             plt.legend()
             plt.grid(True)
-            plt.show()
+            if save_plot:
+                plt.savefig(save_plot, bbox_inches="tight")
+                print(f"Loss plot saved to: {save_plot}")
+            else:
+                plt.show(block=False)
+                plt.pause(0.1)   # render without freezing non-interactive scripts
 
         return history_train[-1]

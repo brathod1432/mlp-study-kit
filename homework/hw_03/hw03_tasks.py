@@ -7,11 +7,11 @@ import os
 import datetime
 import math
 import numpy as np
-from modules.GeneralUtils import ObjLogger as ObjLogger2
-
-# setting ENV as $pwd so current dir
-ENV = os.getcwd()
-sys.path.append(ENV)
+# Resolve nn_core from src/ (works with or without pip install -e .)
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "src"))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+from nn_core.logger import ObjLogger as ObjLogger2
 
 class ObjLogger:
     ANSI_COLORS = {

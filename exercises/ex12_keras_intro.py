@@ -18,12 +18,17 @@ Y = Y.reshape(-1, 1)
 Y = (Y - np.mean(Y))/np.std(Y)
 
 # Creating a neural network model
+# Note: use tf.keras.Input as explicit first layer (input_shape inside Dense is
+# deprecated in TF >= 2.x and removed in Keras 3).
 model = tf.keras.Sequential([
-    tf.keras.layers.Dense(1, activation='linear', input_shape=(1, ))
+    tf.keras.Input(shape=(1,)),
+    tf.keras.layers.Dense(1, activation='linear'),
 ])
 
 # Setting the neural network optimization parameters
-model.compile(optimizer='SGD', loss=tf.keras.losses.MAE)
+# Note: tf.keras.losses.MAE is a function, not a loss class.
+# Use the string alias 'mae' or MeanAbsoluteError() for correct behaviour.
+model.compile(optimizer='SGD', loss='mae')
 
 # Starting the learning process
 model.fit(X, Y, epochs=1000)

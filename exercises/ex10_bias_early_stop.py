@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
-np. random.seed(100)
+np.random.seed(100)
 
 #  Neuron class = calculation of: output, activation potential, activation functions
 class Activation_fcn:

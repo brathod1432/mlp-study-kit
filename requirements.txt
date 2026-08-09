@@ -1,16 +1,22 @@
-# mlp-study-kit -- Python 3.11+
-# Core numerical & plotting (all exercises)
-numpy>=1.26,<2
-matplotlib>=3.8
-scipy>=1.10
+# mlp-study-kit -- runtime dependencies
+# Python 3.11+ required
+# Install: pip install -r requirements.txt
 
-# Train/test split (ex10_bias_early_stop.py)
-scikit-learn>=1.3
+# Core numerical & plotting (used in every exercise and hw file)
+numpy>=1.26,<2.0
+matplotlib>=3.8,<4.0
+scipy>=1.10,<2.0
 
-# Framework bridge (ex12_keras_intro.py only)
-tensorflow>=2.14
-keras>=2.14
+# Train/test split used in ex10_bias_early_stop.py
+scikit-learn>=1.3,<2.0
 
-# Utilities used across hw / experiments
-colorama>=0.4.6
-tqdm>=4.66
+# Terminal colours (ObjLogger ANSI output, cross-platform Windows support)
+colorama>=0.4.6,<1.0
+
+# Progress bars used in experiments/
+tqdm>=4.66,<5.0
+
+# TensorFlow/Keras -- only needed for ex12_keras_intro.py
+# Comment out if not running that exercise (large install)
+tensorflow>=2.14,<3.0
+keras>=2.14,<3.0

@@ -5,7 +5,8 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Tuple
 
 import numpy as np
-from modules.GeneralUtils import ObjLogger, title_message
+import sys, os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+from nn_core.logger import ObjLogger, title_message
 logger = ObjLogger("BackpropDebugger")
 LossType = Literal["mse_sigmoid", "cross_entropy_sigmoid"]
 

@@ -1,0 +1,20 @@
+# mlp-study-kit -- GPU-specific dependencies
+# Only needed for homework/hw_03/gpu_test.py
+# Install: pip install -r requirements-gpu.txt
+#
+# These are NOT included in requirements.txt because:
+# - torch is a large install (~2 GB) not needed for core exercises
+# - torch-directml is AMD GPU specific (Windows only)
+# - tensorflow-datasets has its own large dependency tree
+
+# PyTorch (CPU or GPU via CUDA)
+torch>=2.1,<3.0
+torchvision>=0.16,<1.0
+torchaudio>=2.1,<3.0
+
+# AMD GPU support on Windows (DirectML)
+# Uncomment if using AMD GPU:
+# torch-directml>=0.2
+
+# TensorFlow Datasets (used in hw03 VGG16 tasks)
+tensorflow-datasets>=4.9,<5.0

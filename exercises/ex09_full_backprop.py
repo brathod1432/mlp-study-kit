@@ -10,7 +10,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-np. random.seed(100)
+np.random.seed(100)
 
 #  Neuron class = calculation of: output, activation potential, activation functions
 class Activation_fcn:
