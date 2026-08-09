@@ -22,9 +22,8 @@ logs/
 # PyCharm
 .idea/
 
-# Jupyter
+# Jupyter — ignore checkpoints but track .ipynb source files
 .ipynb_checkpoints/
-*.ipynb
 
 # OS
 .DS_Store
