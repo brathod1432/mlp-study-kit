@@ -101,6 +101,57 @@ class TestEarlyStopping:
         assert model.basic_early_stop(history, epsilon=0.01) is True
 
 
+class TestRepr:
+    def test_repr_uninitialised(self):
+        model = NeuralNetwork()
+        assert "uninitialised" in repr(model)
+
+    def test_repr_shows_layers(self, model):
+        net = model.create_network(STRUCTURE_SIMPLE)
+        r = repr(model)
+        assert "NeuralNetwork(" in r
+        assert "tanh" in r
+        assert "linear" in r
+        assert "input" in r
+
+    def test_str_equals_repr(self, model):
+        net = model.create_network(STRUCTURE_SIMPLE)
+        assert str(model) == repr(model)
+
+
+class TestSaveLoadWeights:
+    def test_save_load_roundtrip(self, tmp_path, model):
+        net = model.create_network(STRUCTURE_SIMPLE)
+        # Store original weights
+        original = [layer["weights"].copy() for layer in net[1:]]
+
+        path = str(tmp_path / "weights.npy")
+        model.save_weights(net, path)
+
+        # Scramble weights
+        for layer in net[1:]:
+            layer["weights"] = np.zeros_like(layer["weights"])
+
+        model.load_weights(net, path)
+
+        for i, layer in enumerate(net[1:]):
+            np.testing.assert_array_almost_equal(layer["weights"], original[i])
+
+    def test_load_shape_mismatch_raises(self, tmp_path, model):
+        net = model.create_network(STRUCTURE_SIMPLE)
+        path = str(tmp_path / "weights.npy")
+        model.save_weights(net, path)
+
+        # Build network with different shape
+        net2 = model.create_network([
+            {"type": "input", "units": 3},
+            {"type": "dense", "units": 4, "activation_function": "tanh", "bias": False},
+            {"type": "dense", "units": 1, "activation_function": "linear", "bias": False},
+        ])
+        with pytest.raises(ValueError, match="Shape mismatch"):
+            model.load_weights(net2, path)
+
+
 class TestTraining:
     def test_loss_decreases_on_simple_regression(self):
         """Train a tiny net on a linear function -- loss must drop."""

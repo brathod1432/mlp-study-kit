@@ -1,6 +1,5 @@
-# mlp-study-kit -- development dependencies
+# mlp-study-kit — development dependencies
 # Install: pip install -r requirements-dev.txt
-# (installs runtime deps too via -r requirements.txt)
 -r requirements.txt
 
 # Testing
@@ -10,5 +9,16 @@ pytest-cov>=4.1,<6.0
 # Linting / formatting
 ruff>=0.4,<1.0
 
+# Type checking
+mypy>=1.8,<2.0
+
 # Security scanning
+bandit[toml]>=1.7,<2.0
 pip-audit>=2.6,<3.0
+
+# Pre-commit hooks (run: pre-commit install)
+pre-commit>=3.6,<4.0
+
+# Jupyter notebook support
+jupyter>=1.0,<2.0
+ipykernel>=6.0,<7.0

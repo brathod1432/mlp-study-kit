@@ -6,7 +6,12 @@
 # Faculty of Power and Aeronautical Engineering
 # Warsaw University of Technology
 
+import os
 import numpy as np
+import matplotlib
+_mpl_backend = os.environ.get("MPLBACKEND", "")
+if _mpl_backend:
+    matplotlib.use(_mpl_backend)
 import matplotlib.pyplot as plt
 
 # Neuron strcutre

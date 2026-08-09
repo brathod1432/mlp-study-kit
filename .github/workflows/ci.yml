@@ -6,14 +6,22 @@ on:
   pull_request:
     branches: [main]
 
+# Prevent duplicate runs on the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # ── Tests ─────────────────────────────────────────────────────────────────
   test:
     name: Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    env:
+      MPLBACKEND: Agg   # suppress all matplotlib windows in CI
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
@@ -27,15 +35,27 @@ jobs:
       - name: Install core dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy matplotlib scipy scikit-learn colorama tqdm
+          pip install numpy "matplotlib>=3.8,<4.0" scipy scikit-learn colorama tqdm
           pip install pytest pytest-cov
 
       - name: Install nn_core package (editable)
         run: pip install -e . --no-deps
 
-      - name: Run tests
-        run: pytest tests/ -v --tb=short --cov=src/nn_core --cov-report=term-missing
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ -v --tb=short \
+            --cov=src/nn_core \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml
 
+      - name: Upload coverage report
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  # ── Lint ──────────────────────────────────────────────────────────────────
   lint:
     name: Lint (ruff)
     runs-on: ubuntu-latest
@@ -47,15 +67,20 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Install ruff
-        run: pip install ruff>=0.4
+        run: pip install "ruff>=0.4,<1.0"
 
-      - name: Lint src/nn_core
+      - name: Lint src/nn_core (strict)
         run: ruff check src/nn_core/
 
-  security:
-    name: Dependency Security Scan
+      - name: Lint exercises/ tools/ (informational — warnings only)
+        run: ruff check exercises/ tools/ || true
+
+  # ── Type check ────────────────────────────────────────────────────────────
+  typecheck:
+    name: Type check (mypy)
     runs-on: ubuntu-latest
 
     steps:
@@ -65,9 +90,36 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
-      - name: Install pip-audit
-        run: pip install pip-audit
+      - name: Install deps
+        run: |
+          pip install numpy "matplotlib>=3.8,<4.0" scipy scikit-learn
+          pip install "mypy>=1.8,<2.0"
+          pip install -e . --no-deps
 
-      - name: Audit dependencies
+      - name: Run mypy on nn_core
+        run: mypy src/nn_core/ --ignore-missing-imports
+
+  # ── Security ──────────────────────────────────────────────────────────────
+  security:
+    name: Security (bandit + pip-audit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install security tools
+        run: pip install "bandit[toml]>=1.7,<2.0" "pip-audit>=2.6,<3.0"
+
+      - name: Bandit static analysis (src/)
+        run: bandit -r src/ -c pyproject.toml
+
+      - name: pip-audit CVE scan
         run: pip-audit -r requirements.txt --skip-editable

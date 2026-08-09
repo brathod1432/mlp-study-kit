@@ -6,8 +6,13 @@
 # Faculty of Power and Aeronautical Engineering
 # Warsaw University of Technology
 
+import os
 import sys
 import numpy as np
+import matplotlib
+_mpl_backend = os.environ.get("MPLBACKEND", "")
+if _mpl_backend:
+    matplotlib.use(_mpl_backend)
 import matplotlib.pyplot as plt
 
 np.random.seed(100)
@@ -28,7 +33,7 @@ class Activation_fcn:
         if name in self.functions:
             return self.functions[name](layer, derivative)
         else:
-            sys.exit(f"Error: Activation function '{name}' not found.")
+            raise ValueError(f"Error: Activation function '{name}' not found.")
 
     # Identity activation function
     def linear(self, layer, derivative=False):
@@ -66,7 +71,7 @@ class Loss_fcn:
         if name in self.functions:
             return self.functions[name](expected, outputs, derivative)
         else:
-            sys.exit(f"Error: Loss function '{name}' not found.")
+            raise ValueError(f"Error: Loss function '{name}' not found.")
 
     # Mean Square Error loss function
     def mse(self, expected, outputs, derivative=False):

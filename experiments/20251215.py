@@ -7,38 +7,11 @@ __author__ = "brijesh_ganpatbhai.rathod.stud@pw.edu.pl"
 import sys, os, argparse, datetime, math
 import numpy as np
 
-# setting ENV as $pwd so current dir
-ENV = os.getcwd()
-sys.path.append(ENV)
-
-def title_message(msg, color="blue"):
-    border = "#" * (len(msg) + 10)
-    logger(border, color=color)
-    logger(f"#\t{msg}\t#", color=color)
-    logger(border, color=color)
-
-class ObjLogger:
-    ANSI_COLORS = {
-        "blue": "\033[34m",
-        "cyan": "\033[36m",
-        "yellow": "\033[33m",
-        "red": "\033[31m",
-        "green": "\033[32m",
-        "magenta": "\033[35m",
-        "white": "\033[37m",
-        "reset": "\033[0m",
-    }
-
-    def __init__(self, name: str = "Logger"):
-        self.name = name
-
-    def __call__(self, message: str, color: str = "white"):
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        prefix = f"{timestamp}\t\t[{self.name}]\t"
-        color_code = self.ANSI_COLORS.get(color.lower(), self.ANSI_COLORS["white"])
-        reset_code = self.ANSI_COLORS["reset"]
-        log_message = f"{prefix}{color_code}{message}{reset_code}"
-        print(log_message)
+import sys as _sys, os as _os
+_ROOT = _os.path.abspath(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "src"))
+if _ROOT not in _sys.path:
+    _sys.path.insert(0, _ROOT)
+from nn_core.logger import ObjLogger, title_message
 
 logger = ObjLogger("Task_set_12")
 

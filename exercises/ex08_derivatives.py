@@ -28,7 +28,7 @@ class Activation_fcn:
         if name in self.functions:
             return self.functions[name](layer, derivative)
         else:
-            sys.exit(f"Error: Activation function '{name}' not found.")
+            raise ValueError(f"Error: Activation function '{name}' not found.")
 
     # Identity activation function
     def linear(self, layer, derivative=False):
@@ -66,7 +66,7 @@ class Loss_fcn:
         if name in self.functions:
             return self.functions[name](expected, outputs, derivative)
         else:
-            sys.exit(f"Error: Loss function '{name}' not found.")
+            raise ValueError(f"Error: Loss function '{name}' not found.")
 
     # Mean Square Error loss function
     def mse(self, expected, outputs, derivative=False):

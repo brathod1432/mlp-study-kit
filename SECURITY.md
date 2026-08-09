@@ -26,7 +26,7 @@ The CI pipeline runs `pip-audit -r requirements.txt` on every push to `main`.
 To run locally:
 ```bash
 pip install pip-audit
-pip-audit -r requirements.txt
+pip-audit -r requirements.txt --skip-editable
 ```
 
 ## Known Constraints

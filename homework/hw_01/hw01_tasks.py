@@ -3,46 +3,11 @@ __author__ = "brijesh_ganpatbhai.rathod.stud@pw.edu.pl"
 # Album No.: 309169
 import sys, os, argparse, datetime, math
 import numpy as np
-# setting ENV as $pwd so current dir
-ENV = os.getcwd()
-sys.path.append(ENV)
-# sys.path.append(ENV + '/modules/')
-# sys.path.append(ENV + '/neural_networks/')
-# sys.path.append(ENV + '/computer_vision/')
-
-# from GeneralUtils import title_message
-# from modules.logger import ObjLogger
-
-def title_message(msg, color="blue"):
-    border = "#" * (len(msg) + 10)
-    # _log = ObjLogger("Title")
-    # _log = logger
-    logger(border, color=color)
-    logger(f"#  {msg}  ", color=color)
-    logger(border, color=color)
-
-class ObjLogger:
-    ANSI_COLORS = {
-        "blue": "\033[34m",
-        "cyan": "\033[36m",
-        "yellow": "\033[33m",
-        "red": "\033[31m",
-        "green": "\033[32m",
-        "magenta": "\033[35m",
-        "white": "\033[37m",
-        "reset": "\033[0m",
-    }
-
-    def __init__(self, name: str = "Logger"):
-        self.name = name
-
-    def __call__(self, message: str, color: str = "white"):
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        prefix = f"{timestamp}\t\t[{self.name}] "
-        color_code = self.ANSI_COLORS.get(color.lower(), self.ANSI_COLORS["white"])
-        reset_code = self.ANSI_COLORS["reset"]
-        log_message = f"{prefix}{color_code}{message}{reset_code}"
-        print(log_message)
+import sys as _sys, os as _os
+_ROOT = _os.path.abspath(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "..", "src"))
+if _ROOT not in _sys.path:
+    _sys.path.insert(0, _ROOT)
+from nn_core.logger import ObjLogger, title_message
 
 logger = ObjLogger("Task_set_12")
 def compute_cost(food: list, stock: dict, prices: dict, raiseException: bool = False):
@@ -154,6 +119,11 @@ class PlotXY:
         grid_status = "ON" if disp else "OFF"
         logger(f"Global plot grid status set to {grid_status}", color="blue")
 
+import matplotlib
+import os as _mpl_os
+_mpl_backend = _mpl_os.environ.get("MPLBACKEND", "")
+if _mpl_backend:
+    matplotlib.use(_mpl_backend)
 import matplotlib.pyplot as plt
 class FileOperations(PlotXY):
     _grid_on = True

@@ -9,44 +9,14 @@ import numpy as np
 # from modules.GeneralUtils import ObjLogger as ObjLogger2
 # from modules.NeuralNetwork import Activation_fcn, NeuralNetCore, Exercise10Data, Homework2Demos, Homework1Utils, Homework3VGG16
 
-# setting ENV as $pwd so current dir
-ENV = os.getcwd()
-sys.path.append(ENV)
+import sys as _sys, os as _os
+_ROOT = _os.path.abspath(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "..", "src"))
+if _ROOT not in _sys.path:
+    _sys.path.insert(0, _ROOT)
+from nn_core.logger import ObjLogger, title_message
 import tensorflow as tf
 
-class ObjLogger:
-    ANSI_COLORS = {
-        "blue": "\033[34m",
-        "cyan": "\033[36m",
-        "yellow": "\033[33m",
-        "red": "\033[31m",
-        "green": "\033[32m",
-        "magenta": "\033[35m",
-        "white": "\033[37m",
-        "reset": "\033[0m",
-    }
-
-    def __init__(self, name: str = "Logger"):
-        self.name = name
-
-    def __call__(self, message: str, color: str = "white"):
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        prefix = f"{timestamp}\t\t[{self.name}]\t"
-        color_code = self.ANSI_COLORS.get(color.lower(), self.ANSI_COLORS["white"])
-        reset_code = self.ANSI_COLORS["reset"]
-        log_message = f"{prefix}{color_code}{message}{reset_code}"
-        print(log_message)
-
 logger = ObjLogger("Task_set_12")
-
-def title_message(msg, color="blue"):
-    """
-    Prints a formatted title box using logger.
-    """
-    border = "#" * (len(msg) + 10)
-    logger(border, color=color)
-    logger(f"#\t{msg}\t#", color=color)
-    logger(border, color=color)
 
 class Homework3VGG16:
     """
@@ -479,6 +449,11 @@ class Homework3VGG16:
         title_message("HW3\tTask2\tPlot Loss Curves", color="blue")
 
         try:
+            import matplotlib
+            import os as _mpl_os
+            _mpl_backend = _mpl_os.environ.get("MPLBACKEND", "")
+            if _mpl_backend:
+                matplotlib.use(_mpl_backend)
             import matplotlib.pyplot as plt
 
             if len(train_loss) == 0:
@@ -512,6 +487,11 @@ class Homework3VGG16:
         try:
             # import tensorflow as tf
             # import numpy as np
+            import matplotlib
+            import os as _mpl_os
+            _mpl_backend = _mpl_os.environ.get("MPLBACKEND", "")
+            if _mpl_backend:
+                matplotlib.use(_mpl_backend)
             import matplotlib.pyplot as plt
 
             xb, yb = next(iter(val_ds))

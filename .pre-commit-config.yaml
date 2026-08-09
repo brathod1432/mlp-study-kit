@@ -1,0 +1,29 @@
+repos:
+  # ── ruff: linting + import sorting ────────────────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.10
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^src/nn_core/
+
+  # ── bandit: security static analysis ──────────────────────────────────────
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.9
+    hooks:
+      - id: bandit
+        args: [-r, src/, -c, pyproject.toml]
+        files: ^src/
+
+  # ── trailing whitespace + end-of-file fixer ───────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: debug-statements     # catches stray breakpoint() / pdb calls
+      - id: check-added-large-files
+        args: [--maxkb=1000]     # block files >1 MB (no model weights in git)
