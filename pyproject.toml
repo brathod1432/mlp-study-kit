@@ -40,12 +40,14 @@ dependencies = [
 
 [project.optional-dependencies]
 tensorflow = [
-    # TF 2.14 requires numpy <2.0; pin together to avoid solver conflicts
+    # TF 2.14 requires numpy <2.0; pin together to avoid solver conflicts.
+    # Equivalent to requirements_windows.txt or requirements_linux.txt.
     "numpy>=1.26,<2.0",
     "tensorflow>=2.14,<2.16",
     "keras>=2.14,<3.0",
 ]
 dev = [
+    # Equivalent to requirements_dev.txt — dev tools work on both OS.
     "pytest>=7.4,<9.0",
     "pytest-cov>=4.1,<6.0",
     "ruff>=0.4,<1.0",
@@ -53,6 +55,8 @@ dev = [
     "mypy>=1.8,<2.0",
     "pre-commit>=3.6,<4.0",
     "pip-audit>=2.6,<3.0",
+    "jupyter>=1.0,<2.0",
+    "ipykernel>=6.0,<7.0",
 ]
 
 [project.urls]

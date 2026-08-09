@@ -1,0 +1,31 @@
+# mlp-study-kit — Windows runtime requirements
+# Python 3.10+ | Tested on Windows 10/11
+#
+# Includes cross-platform base + TensorFlow for Windows + Windows-specific notes.
+#
+# Install:
+#   pip install -r requirements_windows.txt
+#
+# For GPU support (CUDA / DirectML):
+#   pip install -r requirements_gpu_windows.txt
+#
+# For development tools:
+#   pip install -r requirements_dev.txt
+
+# ── Cross-platform base ───────────────────────────────────────────────────
+-r requirements.txt
+
+# ── TensorFlow for Windows ────────────────────────────────────────────────
+# Required for: exercises/ex12_keras_intro.py, homework/hw_03/
+#
+# Prerequisites on Windows:
+#   Microsoft Visual C++ Redistributable 2019+ must be installed.
+#   Download from: https://aka.ms/vs/17/release/vc_redist.x64.exe
+#
+# TF 2.14–2.15 are the last versions with native Windows support.
+# TF >= 2.16 requires WSL2 on Windows for GPU; CPU still works.
+#
+# numpy is pinned to <2.0 here because TF 2.14 requires it.
+numpy>=1.26,<2.0
+tensorflow>=2.14,<2.16
+keras>=2.14,<3.0

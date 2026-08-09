@@ -161,24 +161,44 @@ model.load_weights(net, "weights.npy")
 ```bash
 # Python 3.10+ required
 
-# Option A — editable install (recommended for development)
+# Step 1 — install the nn_core package (editable — no PYTHONPATH hacks)
 pip install -e .
-pip install -r requirements-dev.txt   # adds pytest, ruff, bandit, mypy
 
-# Option B — runtime only
-pip install -r requirements.txt
-
-# Option C — with TensorFlow (for ex12 / hw03)
-# TF 2.14 requires numpy <2.0; this installs a compatible set:
-pip install -e ".[tensorflow]"
-
-# Option D — GPU extras (torch, tensorflow-datasets)
-pip install -r requirements-gpu.txt
+# Step 2 — pick the requirements file for your OS and use case:
 ```
 
-> **Note on NumPy:** `nn_core` is compatible with both NumPy 1.x and 2.x.
-> TensorFlow 2.14 requires NumPy `<2.0`, so if you install the `[tensorflow]`
-> extra it will downgrade NumPy if 2.x is present. This is expected behaviour.
+| File | OS | Content |
+|------|----|---------|
+| `requirements.txt` | Both | **Base** — numpy, matplotlib, scipy, sklearn, colorama, tqdm |
+| `requirements_windows.txt` | Windows | Base + TensorFlow for Windows (includes VC++ note) |
+| `requirements_linux.txt` | Linux / macOS | Base + TensorFlow for Linux |
+| `requirements_dev.txt` | Both | Base + pytest, ruff, mypy, bandit, pre-commit, jupyter |
+| `requirements_gpu_windows.txt` | Windows | Windows + PyTorch CPU/CUDA + DirectML (AMD) + tf-datasets |
+| `requirements_gpu_linux.txt` | Linux | Linux + PyTorch CPU/CUDA + ROCm (AMD) + tf-datasets |
+
+```bash
+# Windows — core exercises only
+pip install -r requirements_windows.txt
+
+# Linux — core exercises only
+pip install -r requirements_linux.txt
+
+# Either OS — development (tests, lint, security, Jupyter)
+pip install -r requirements_dev.txt
+
+# Either OS — GPU support for hw_03/gpu_test.py
+pip install -r requirements_gpu_windows.txt   # Windows
+pip install -r requirements_gpu_linux.txt     # Linux
+
+# Or use the pyproject.toml extras:
+pip install -e ".[tensorflow]"    # TF-compatible numpy + TF 2.14
+pip install -e ".[dev]"           # dev tools only
+```
+
+> **NumPy version note:** `nn_core` works with NumPy 1.x and 2.x.
+> TensorFlow 2.14 requires `numpy < 2.0`, so the `_windows` / `_linux`
+> requirements pin `numpy<2.0`. The base `requirements.txt` allows `<3.0`
+> for users who don't need TensorFlow.
 
 ---
 

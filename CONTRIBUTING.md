@@ -27,8 +27,14 @@ python -m venv .venv
 source .venv/bin/activate      # Linux/Mac
 .venv\Scripts\Activate.ps1    # Windows PowerShell
 
-# 3. Install all dependencies (runtime + dev)
-pip install -r requirements-dev.txt
+# 3. Install dependencies for your platform
+# Windows:
+pip install -r requirements_windows.txt   # runtime + TF
+# Linux:
+pip install -r requirements_linux.txt     # runtime + TF
+
+# Dev tools (both platforms):
+pip install -r requirements_dev.txt
 
 # 4. Install nn_core as editable package (no PYTHONPATH needed)
 pip install -e .

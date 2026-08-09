@@ -1,0 +1,28 @@
+# mlp-study-kit — Linux (and macOS) runtime requirements
+# Python 3.10+ | Tested on Ubuntu 20.04+, Debian 11+
+#
+# Includes cross-platform base + TensorFlow for Linux + Linux-specific notes.
+#
+# Install:
+#   pip install -r requirements_linux.txt
+#
+# For GPU support (CUDA / ROCm):
+#   pip install -r requirements_gpu_linux.txt
+#
+# For development tools:
+#   pip install -r requirements_dev.txt
+
+# ── Cross-platform base ───────────────────────────────────────────────────
+-r requirements.txt
+
+# ── TensorFlow for Linux ──────────────────────────────────────────────────
+# Required for: exercises/ex12_keras_intro.py, homework/hw_03/
+#
+# Prerequisites on Linux:
+#   sudo apt install python3-dev   # Debian/Ubuntu
+#   glibc >= 2.17 is required (present on all modern distros)
+#
+# numpy is pinned to <2.0 here because TF 2.14 requires it.
+numpy>=1.26,<2.0
+tensorflow>=2.14,<2.16
+keras>=2.14,<3.0
