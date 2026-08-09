@@ -1,0 +1,338 @@
+#!/usr/bin/env python3.11
+__author__ = "brijesh_ganpatbhai.rathod.stud@pw.edu.pl"
+# Album No.: 309169
+import sys, os, argparse, datetime, math
+import numpy as np
+# setting ENV as $pwd so current dir
+ENV = os.getcwd()
+sys.path.append(ENV)
+# sys.path.append(ENV + '/modules/')
+# sys.path.append(ENV + '/neural_networks/')
+# sys.path.append(ENV + '/computer_vision/')
+
+# from GeneralUtils import title_message
+# from modules.logger import ObjLogger
+
+def title_message(msg, color="blue"):
+    border = "#" * (len(msg) + 10)
+    # _log = ObjLogger("Title")
+    # _log = logger
+    logger(border, color=color)
+    logger(f"#  {msg}  ", color=color)
+    logger(border, color=color)
+
+class ObjLogger:
+    ANSI_COLORS = {
+        "blue": "\033[34m",
+        "cyan": "\033[36m",
+        "yellow": "\033[33m",
+        "red": "\033[31m",
+        "green": "\033[32m",
+        "magenta": "\033[35m",
+        "white": "\033[37m",
+        "reset": "\033[0m",
+    }
+
+    def __init__(self, name: str = "Logger"):
+        self.name = name
+
+    def __call__(self, message: str, color: str = "white"):
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        prefix = f"{timestamp}\t\t[{self.name}] "
+        color_code = self.ANSI_COLORS.get(color.lower(), self.ANSI_COLORS["white"])
+        reset_code = self.ANSI_COLORS["reset"]
+        log_message = f"{prefix}{color_code}{message}{reset_code}"
+        print(log_message)
+
+logger = ObjLogger("Task_set_12")
+def compute_cost(food: list, stock: dict, prices: dict, raiseException: bool = False):
+    title_message("Starting Cost Calculation", color="magenta")
+    # Input Validation
+    if not isinstance(food, list) or not isinstance(stock, dict) or not isinstance(prices, dict):
+        logger(f"ERROR: Invalid input types for compute_cost. Expected (list, dict, dict)."
+               f"Received ({type(food).__name__}, {type(stock).__name__}, {type(prices).__name__}).",
+               color="red")
+        if raiseException:
+            raise TypeError("Input validation failed: compute_cost requires arguments to be a list, a dictionary, and a dictionary.")
+        else:
+            logger(f"raiseException is set to False. Not raising an error", color="red")
+            return []
+
+    total_cost = 0
+    logger(f"Items to check: {food}", color="cyan")
+    for item in food:
+        if item in stock and item in prices:
+            item_stock = stock[item]
+            item_price = prices[item]
+            if item_stock is None or item_price is None or item_stock < 0 or item_price < 0:
+                logger(f"Skipping '{item}': Stock or price value is invalid ({item_stock=}, {item_price=}).", color="yellow")
+                continue
+            cost = item_price * item_stock
+            total_cost += cost
+            logger(f"Processing '{item}': Stock={item_stock}, Price=${item_price:.2f} -> Cost=${cost:.2f}", color="blue")
+        else:
+            logger(f"Skipping '{item}': Item not found in stock or price list.", color="red")
+
+    logger(f"\nTotal Cost of all requested items: ${total_cost:.2f}", color="green")
+    title_message("Cost Calculation Complete. Returning Total Codt", color="magenta")
+    return total_cost
+
+def prime_range(x, raise_exception: bool = False) -> list:
+    if not isinstance(x, int) or x < 0:
+        error_msg = f"Invalid input 'x'. Must be a non-negative integer. Received type: {type(x).__name__}, value: {x}."
+        if raise_exception:
+            raise ValueError(f"Prime Range Error: {error_msg}")
+        else:
+            logger(f"Input validation failed (returning empty list): {error_msg}", color="red")
+            return []
+    if x < 2:
+        logger(f"Range upper limit is {x}. No prime numbers found.", color="cyan")
+        return []
+
+    title_message(f"Finding Primes up to {x}", color="cyan")
+    primes = []
+    for num in range(2, x + 1):
+        is_prime = True
+        # Checkin for factors
+        limit = int(math.sqrt(num)) + 1
+        for i in range(2, limit):
+            if num % i == 0:
+                is_prime = False
+                break
+        if is_prime:
+            primes.append(num)
+
+    logger(f"Found {len(primes)} prime numbers in range [1..{x}].", color="green")
+    logger(f"Primes List: {primes}", color="blue")
+    return primes
+
+
+class PlotXY:
+    """
+    A class to generate X-Y data sequences (Sine and Cosine) using numpy,
+    and will contain methods for plotting and configuration.
+    """
+    _grid_on = True
+    def __init__(self):
+        self.x1 = None
+        self.x2 = None
+        self.y1 = None
+        self.y2 = None
+        logger(f"PlotXY object initialized and ready for data generation.", color="magenta")
+
+    def generate_data(self, xrange: float, xstep: float):
+        """
+            self.x1- a sequence of numbers from 0 to xrange with step 0.1*xstep.
+            self.x2- a sequence of numbers from 0 to xrange with step xstep.
+            self.y1- calculate the sine values for ”self.x1”.
+            self.y2- calculate the cosine values for ”self.x2”.
+        """
+        title_message(f"Generating Plot Data (xstep={xstep}, xrange={xrange})", color="magenta")
+
+        # 1. self.x1: sequence from 0 to xrange with step 0.1*xstep.
+        step_1 = 0.1 * xstep
+        self.x1 = np.arange(0, xrange, step_1)
+
+        # 2. self.x2: sequence from 0 to xrange with step xstep.
+        step_2 = xstep
+        self.x2 = np.arange(0, xrange, step_2)
+
+        # 3. self.y1: calculate the sine values for "self.x1".
+        self.y1 = np.sin(self.x1)
+
+        # 4. self.y2: calculate the cosine values for "self.x2".
+        self.y2 = np.cos(self.x2)
+
+        logger(f"Data generated successfully. x1 length: {len(self.x1)}, x2 length: {len(self.x2)}.", color="green")
+
+    def set_grid(self, disp: bool = True):
+        """
+        Task 4: Configures the plot properties to turn the grid on or off.
+        This setting is applied globally to all plots generated by PlotXY.
+        """
+        PlotXY._grid_on = disp
+        grid_status = "ON" if disp else "OFF"
+        logger(f"Global plot grid status set to {grid_status}", color="blue")
+
+import matplotlib.pyplot as plt
+class FileOperations(PlotXY):
+    _grid_on = True
+
+    def __init__(self):
+        super().__init__()
+        logger(f"FileOperations object initialized (inherits PlotXY).", color="magenta")
+
+    def plot_solid(self, title: str):
+        # Safety check: access data via self since it's inherited
+        if self.x1 is None or self.x2 is None:
+            logger("ERROR: Plot data is missing. Run generate_data() first.", color="red")
+            return
+
+        title_message(f"Creating Solid Plot: {title}", color="cyan")
+        plt.figure()
+        plt.plot(self.x1, self.y1, 'r-', label='Sine')
+        plt.plot(self.x2, self.y2, 'b-', label='Cosine')
+
+        # Configure plot elements
+        plt.title(title)
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.legend()
+        plt.grid(FileOperations._grid_on)  # Apply the Global grid setting
+        plt.show()
+        logger("Solid plot generated and displayed.", color="green")
+
+    def plot_dash(self):
+        # Safety check: access data via self since it's inherited
+        if self.x1 is None or self.x2 is None:
+            logger("ERROR: Plot data is missing. Run generate_data() first.", color="red")
+            return
+
+        title_message("Creating Dashed Subplots (Sine & Cosine)", color="cyan")
+
+        # Create a figure and a set of subplots (1 row, 2 columns)
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+        # First Subplot (Sin)
+        ax1.plot(self.x1, self.y1, 'r--', label='Sine')
+        ax1.set_title('Sine')
+        ax1.set_xlabel('x')
+        ax1.set_ylabel('y')
+        ax1.grid(FileOperations._grid_on)  # Apply the global grid setting
+
+        # Second Subplot (Cos)
+        ax2.plot(self.x2, self.y2, 'b--', label='Cosine')
+        ax2.set_title('Cosine')
+        ax2.set_xlabel('x')
+        ax2.set_ylabel('y')
+        ax2.grid(FileOperations._grid_on)  # Apply the global grid setting
+
+        plt.tight_layout()
+        plt.show()
+        logger("Dashed subplots generated and displayed.", color="green")
+
+    @classmethod
+    def set_grid(cls, disp: bool = True):
+        cls._grid_on = disp
+        grid_status = "ON" if disp else "OFF"
+        logger(f"Global plot grid status set to {grid_status}", color="blue")
+
+if __name__ == "__main__":
+    # Test1
+    # logger(f"Starting data normalization step.", color="cyan")
+    # logger(f"Fetching pre-trained weights.", color="blue")
+    # logger(f"1000 rows processed successfully.", color="green")
+    # logger(f"Warning: Learning rate set too high.", color="yellow")
+    # title_message(f"test-title")
+    #########################################################################################
+    #########################################################################################
+    #########################################################################################
+    # Task 1
+    # Positive Case
+    foods_to_buy = ["banana", "orange", "apple"]
+    inventory_stock = {"banana": 4, "apple": 0, "orange": 9}
+    unit_prices = {"banana": 3.0, "apple": 2.0, "orange": 2.5}
+
+    try:
+        title_message("Demonstration Run 1: Successful Calculation", color="green")
+        compute_cost(food=foods_to_buy, stock=inventory_stock, prices=unit_prices, raiseException=True)
+    except Exception as e:
+        logger(f"An unexpected error occurred in Run 1: {e}", color="red")
+
+    # print("\n" + "=" * 80 + "\n")
+    # NEgative Case
+    try:
+        title_message("Demonstration Run 2: Input Validation Test (Expected Failure)", color="green")
+        # Pass a string instead of a list for 'food' to trigger the error
+        compute_cost(food="Not a list", stock=inventory_stock, prices=unit_prices, raiseException=True)
+    except TypeError as e:
+        logger(f"Successfully caught expected error: {e}", color="green")
+    except Exception as e:
+        logger(f"Caught unexpected error: {e}", color="red")
+
+    #########################################################################################
+    #########################################################################################
+    #########################################################################################
+
+    # Task 2
+    logger(f"Scenario 1: up to 30", color="magenta")
+    primes_up_to_30 = prime_range(x=30)
+    logger(f"Final list returned to main function: {primes_up_to_30}", color="green")
+
+    logger(f"Scenario 2: Invalid Input", color="magenta")
+    primes_fail_no_raise = prime_range(x=5.5, raise_exception=False)
+    logger(f"Result after non-raising error: {primes_fail_no_raise}", color="green")
+
+    logger(f"Scenario 3: Invalid Input", color="magenta")
+    try:
+        # Using a negative integer (-10) with exception raising enabled (True)
+        prime_range(x=-10, raise_exception=True)
+    except ValueError as e:
+        logger(f"Successfully CAUGHT expected ValueError: {e}", color="yellow")
+    except Exception as e:
+        logger(f"Caught an unexpected type of error: {e}", color="red")
+        # raise e
+
+    #########################################################################################
+    #########################################################################################
+    #########################################################################################
+
+    # Task 3
+    # 3.1 till 3.4
+    # --- POSITIVE SCENARIO (Successful Data Generation) ---
+    xrange = 15.0
+    xstep = 0.5
+    logger(f"--- Scenario 1: Successful Data Generation (xstep={xstep}, xrange={xrange}) ---", color="magenta")
+    # 1. Create instance (assuming ObjLogger will log the initialization)
+    plot_generator = PlotXY()
+
+    # 2. Call generate_data with valid inputs
+    plot_generator.generate_data(xstep=xstep, xrange=xrange)
+
+    # 3. Optional quick check on the generated data
+    logger(f"Successfully created x1 array of length: {len(plot_generator.x1)}", color="green")
+    logger(f"First 50 y1 (sine) values: \n{plot_generator.y1[:50]}", color="cyan")
+
+    xrange = 10.0
+    xstep = 0
+    # --- NEGATIVE SCENARIO (Handling Zero Step) ---
+    logger(f"--- Scenario 2: Invalid Step Input (xstep=0) ---", color="magenta")
+    try:
+        plot_generator_bad = PlotXY()  # Create a new instance
+        # Passing xstep=0 will cause numpy.arange to fail, demonstrating structure - error handling
+        plot_generator_bad.generate_data(xstep=xstep, xrange=xrange)
+    except ValueError as e:
+        # We catch the ValueError that numpy.arange raises when the step is zero or invalid.
+        logger(f"Successfully CAUGHT expected ValueError from numpy.arange (due to zero step): {e}", color="yellow")
+    except Exception as e:
+        logger(f"Caught an unexpected error during invalid step test: {e}", color="red")
+
+    # print("\n" + "=" * 80 + "\n")
+    # --- FILE OPERATIONS CLASS TESTING ---
+    title_message("Testing FileOperations Class (Plotting Tasks)", color="blue")
+    # 1. Declaration
+    logger(f"Creating FileOperations  to handle all plotting tasks.", color="magenta")
+    plot_tasks = FileOperations()
+
+    # 2. Generate
+    x_range_val = 15.0
+    x_step_val = 0.5
+    logger(f"Generating data with xrange={x_range_val}, xstep={x_step_val}", color="cyan")
+    plot_tasks.generate_data(xrange=x_range_val, xstep=x_step_val)
+
+    # 3. Test Task 4: Set Grid OFF
+    FileOperations.set_grid(False)
+    logger(f"Grid setting globally set to OFF.", color="yellow")
+
+    # 4. Test Task 2: plot_solid (Should show without grid)
+    plot_tasks.plot_solid("Demonstration Plot: Solid Lines (Grid OFF)")
+    logger(f"Displayed 'plot_solid' figure. Check the output window for the plot.", color="green")
+
+    # 5. Test Task 4: Set Grid ON
+    FileOperations.set_grid(True)
+    logger(f"Grid setting globally set to ON.", color="yellow")
+
+    # 6. Test Task 3: plot_dash (Should show with grid)
+    plot_tasks.plot_dash()
+    logger(f"Displayed 'plot_dash' subplots. Check the output window for the figure.", color="green")
+
+    title_message("All Tasks and Demonstrations Complete!", color="blue")

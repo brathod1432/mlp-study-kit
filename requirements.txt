@@ -1,0 +1,16 @@
+# mlp-study-kit -- Python 3.11+
+# Core numerical & plotting (all exercises)
+numpy>=1.26,<2
+matplotlib>=3.8
+scipy>=1.10
+
+# Train/test split (ex10_bias_early_stop.py)
+scikit-learn>=1.3
+
+# Framework bridge (ex12_keras_intro.py only)
+tensorflow>=2.14
+keras>=2.14
+
+# Utilities used across hw / experiments
+colorama>=0.4.6
+tqdm>=4.66
