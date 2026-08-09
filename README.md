@@ -246,7 +246,24 @@ model.train(net, X, Y, verbose=1, save_plot="training_history.png")
 
 ---
 
+## License
+
+This project is released under the **[MIT License](LICENSE)** — free to use,
+copy, modify, and distribute for any purpose, including commercial use.
+
+```
+MIT License  |  Copyright (c) 2026 Brijesh Rathod
+```
+
+---
+
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-Security issues: see [SECURITY.md](SECURITY.md).
+Contributions are welcome from anyone:
+
+- **Open an issue** — bug reports, questions, suggestions →
+  [github.com/brathod1432/mlp-study-kit/issues](https://github.com/brathod1432/mlp-study-kit/issues)
+- **Submit a PR** — anyone can fork and open a pull request;
+  [@brathod1432](https://github.com/brathod1432) reviews and merges
+
+Full guide: [CONTRIBUTING.md](CONTRIBUTING.md) | Security: [SECURITY.md](SECURITY.md)

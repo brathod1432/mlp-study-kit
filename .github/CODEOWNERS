@@ -1,0 +1,10 @@
+# CODEOWNERS — GitHub automatically requests a review from these users
+# on every pull request that touches the matching paths.
+#
+# Only @brathod1432 can approve and merge pull requests into main.
+# Anyone can open a PR; this file ensures review always goes to the owner.
+#
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Everything in the repository
+* @brathod1432
