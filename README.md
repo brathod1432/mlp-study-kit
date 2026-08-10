@@ -110,7 +110,28 @@ mlp-study-kit/
 
 ---
 
-## Using the Shared Package (`nn_core`)
+## Package Overview
+
+Two packages live in `src/` — both are auto-discovered by `pip install -e .`:
+
+| Package | Import | Purpose |
+|---------|--------|---------|
+| `nn_core` | `from nn_core import NeuralNetwork` | MLP building blocks — activations, losses, network, logger |
+| `modules` | `from modules.data_utils import make_regression_data` | Helper utilities — data generation, visualisation, array validation |
+
+```python
+# nn_core — build and train the network
+from nn_core import NeuralNetwork, ActivationFn, LossFn, ObjLogger
+
+# modules — everything around the network
+from modules.data_utils    import make_regression_data, train_test_split, normalize
+from modules.plot_utils    import plot_loss_history, plot_predictions, plot_activations
+from modules.general_utils import ensure_directory, as_float_array, describe_array
+```
+
+---
+
+## Using `nn_core`
 
 After `pip install -e .`, import directly — no path hacks needed:
 
@@ -152,6 +173,44 @@ preds = model.predict(net, X)
 # 5. Save / reload weights
 model.save_weights(net, "weights.npy")
 model.load_weights(net, "weights.npy")
+```
+
+---
+
+## Using `modules`
+
+```python
+import numpy as np
+from modules.data_utils    import make_regression_data, train_test_split, normalize
+from modules.plot_utils    import plot_loss_history, plot_predictions, plot_activations
+from modules.general_utils import ensure_directory, as_float_array
+
+# 1. Generate data — same dataset as exercises/ex09 and ex10
+X, Y = make_regression_data(n=150, noise=0.15, seed=42)
+
+# 2. Split
+X_tr, Y_tr, X_te, Y_te = train_test_split(X, Y, test_ratio=0.25)
+
+# 3. Normalise (apply train stats to both sets)
+X_tr_n, mu, sigma = normalize(X_tr)
+X_te_n, _,  _     = normalize(X_te, mean=mu, std=sigma)
+
+# 4. Train the network (using nn_core)
+from nn_core import NeuralNetwork
+model = NeuralNetwork()
+net   = model.create_network([
+    {"type": "input",  "units": 1},
+    {"type": "dense",  "units": 32, "activation_function": "tanh",   "bias": True},
+    {"type": "dense",  "units": 1,  "activation_function": "linear", "bias": True},
+])
+model.train(net, X_tr_n, Y_tr, X_te_n, Y_te, l_rate=0.02, n_epoch=500, verbose=0)
+
+# 5. Visualise
+ensure_directory("outputs")
+preds = model.predict(net, X_te_n)
+plot_predictions(X_te, Y_te, preds, save_path="outputs/predictions.png")
+plot_loss_history([0.5, 0.3, 0.1], save_path="outputs/loss.png")
+plot_activations(save_path="outputs/activations.png")
 ```
 
 ---
