@@ -40,58 +40,64 @@ python tools/backprop_debugger.py
 ## Repository Structure
 
 ```
-mlp-study-kit/
+mlp-study-kit/                     ← project root (flat layout — no src/ wrapper)
 |
-|-- src/nn_core/                   # Importable shared package
-|   |-- __init__.py
-|   |-- logger.py                  # ObjLogger — single ANSI-colour logger
+|-- nn_core/                       # MLP core package — import: from nn_core import ...
+|   |-- __init__.py                # Exports NeuralNetwork, ActivationFn, LossFn, ObjLogger
+|   |-- logger.py                  # ObjLogger — ANSI-coloured logger (Windows-safe)
 |   |-- activations.py             # ActivationFn: linear/sigmoid/tanh/relu/leaky_relu/elu
 |   |-- losses.py                  # LossFn: MSE + BCE (forward + derivative)
-|   +-- network.py                 # NeuralNetwork: forward, backprop, train, save/load
+|   +-- network.py                 # NeuralNetwork: build, forward, backprop, train, save/load
 |
-|-- exercises/                     # Progressive standalone lecture exercises
-|   |-- ex06_neuron_basics.py      # Stage 1 — dict neuron, plain activation functions
-|   |-- ex07_forward_pass.py       # Stage 2 — OOP classes, forward propagation only
-|   |-- ex08_derivatives.py        # Stage 3 — activation/loss derivatives; stubs for backprop
+|-- modules/                       # Helper package — import: from modules.data_utils import ...
+|   |-- __init__.py                # Top-level re-exports for all four sub-modules
+|   |-- general_utils.py           # ensure_directory, as_float_array, print_matrices …
+|   |-- plot_utils.py              # plot_loss_history, plot_predictions, plot_activations …
+|   |-- data_utils.py              # make_regression_data, train_test_split, load_csv, k_fold_split
+|   +-- metrics.py                 # mse, rmse, mae, r2_score, accuracy, f1_score, evaluate …
+|
+|-- tests/                         # pytest suite (191 tests, all passing)
+|   |-- conftest.py                # Adds project root to sys.path; sets MPLBACKEND=Agg
+|   |-- test_activations.py
+|   |-- test_losses.py
+|   |-- test_network.py
+|   |-- test_logger.py
+|   |-- test_general_utils.py
+|   |-- test_data_utils.py
+|   |-- test_plot_utils.py
+|   +-- test_metrics.py
+|
+|-- examples/                      # Runnable end-to-end scripts
+|   |-- 01_regression.py           # sin(2x)+cos(x)+5 regression with weight save
+|   |-- 02_classification.py       # 2D binary classifier + decision boundary
+|   |-- 03_custom_csv_data.py      # Load your own CSV and train
+|   +-- README.md
+|
+|-- exercises/                     # Progressive lecture exercises (standalone)
+|   |-- ex06_neuron_basics.py      # Stage 1 — dict neuron, activation + loss functions
+|   |-- ex07_forward_pass.py       # Stage 2 — OOP, forward propagation only
+|   |-- ex08_derivatives.py        # Stage 3 — derivatives, backprop stubs
 |   |-- ex09_full_backprop.py      # Stage 4 — complete backprop + training loop
 |   |-- ex10_bias_early_stop.py    # Stage 5 — bias, train/test split, early stopping
-|   |-- ex12_keras_intro.py        # Stage 6 — same task via TensorFlow/Keras
-|   +-- test1_logger_check.py      # Logger smoke test
+|   +-- ex12_keras_intro.py        # Stage 6 — same task via TensorFlow/Keras
 |
-|-- homework/
-|   |-- hw_01/hw01_tasks.py        # Python fundamentals: compute_cost, PlotXY
-|   |-- hw_02/hw02_tasks.py        # LeakyReLU, ELU, Glorot init, Adagrad
-|   +-- hw_03/
-|       |-- hw03_tasks.py          # HW3 full implementation
-|       |-- hw03_with_colab_output.py  # Colab-annotated version
-|       +-- gpu_test.py            # GPU / DirectML availability test
+|-- homework/hw_01, hw_02, hw_03/  # Homework assignments
+|-- tools/                         # Exam-prep backprop debuggers (see tools/README.md)
+|-- experiments/                   # Date-stamped exploration scripts (see experiments/README.md)
+|-- notebooks/01_nn_core_intro.ipynb  # Interactive Jupyter walkthrough
+|-- outputs/                       # Generated plots/weights/CSVs (gitignored, dir tracked)
+|-- logs/                          # Runtime logs (gitignored)
 |
-|-- tools/                         # Exam-prep and debugging utilities
-|   |-- backprop_debugger.py       # Full one-iteration debugger (lecture notation)
-|   |-- backprop_debug.py          # Compact debugger for specific exam questions
-|   |-- backprop_debug_v2.py       # Generic multi-layer debug (configurable sizes)
-|   |-- backprop_step_calculator.py# Step-by-step manual calculator
-|   +-- mlp_trainer_with_gradient_check.py  # Training + numerical gradient check
-|   +-- README.md                  # Which tool to use when
-|
-|-- experiments/                   # Date-stamped exploration scripts
-|   |-- 20251215.py                # Early MLP experiments
-|   |-- 20251223.py                # Extended training + classification
-|   |-- 20251224.py                # Pre-HW2 exploration
-|   |-- 20251224_v2.py             # HW2: Glorot, Adagrad, ELU, batch processing
-|   +-- README.md                  # What each script covers
-|
-|-- notebooks/                     # Interactive Jupyter examples
-|   +-- 01_nn_core_intro.ipynb     # End-to-end: build, train, save, visualise
-|
-|-- tests/                         # pytest suite (49 tests, all passing)
-|-- logs/                          # Auto-generated at runtime — gitignored
-|-- .github/workflows/ci.yml       # CI: test + lint + bandit + pip-audit
-|-- .pre-commit-config.yaml        # Pre-commit: ruff + bandit on every commit
-|-- pyproject.toml                 # Package config (pip install -e . ready)
-|-- requirements.txt               # Runtime deps
-|-- requirements-dev.txt           # Dev deps (pytest, ruff, bandit, mypy …)
-|-- requirements-gpu.txt           # Optional GPU deps (torch, tf-datasets)
+|-- pyproject.toml                 # Package config — pip install -e . discovers nn_core + modules
+|-- requirements.txt               # Cross-platform base
+|-- requirements_windows.txt       # + TensorFlow for Windows
+|-- requirements_linux.txt         # + TensorFlow for Linux
+|-- requirements_dev.txt           # Dev tools (pytest, ruff, mypy, bandit, pre-commit)
+|-- requirements_gpu_windows.txt   # Windows GPU (torch CUDA/DirectML)
+|-- requirements_gpu_linux.txt     # Linux GPU (torch CUDA/ROCm)
+|-- .github/workflows/ci.yml       # CI: test (3.10-3.12) + lint + mypy + bandit + pip-audit
+|-- .pre-commit-config.yaml        # ruff + bandit on every commit
+|-- Makefile / run.ps1             # Developer shortcuts (make test, make lint, ...)
 +-- AGENTS.md                      # Full knowledge base for AI agents / Devin
 ```
 
@@ -112,7 +118,7 @@ mlp-study-kit/
 
 ## Package Overview
 
-Two packages live in `src/` — both are auto-discovered by `pip install -e .`:
+Two packages live at the **project root** (flat layout) — both auto-discovered by `pip install -e .`:
 
 | Package | Import | Purpose |
 |---------|--------|---------|
@@ -268,10 +274,10 @@ pip install -e ".[dev]"           # dev tools only
 pytest                              # or: make test  / .\run.ps1 test
 
 # Run with coverage
-pytest --cov=src/nn_core --cov-report=term-missing
+pytest --cov=nn_core --cov-report=term-missing
 
 # Lint
-ruff check src/nn_core/             # or: make lint
+ruff check nn_core/             # or: make lint
 
 # Security scan
 bandit -r src/                      # or: make audit

@@ -20,9 +20,9 @@ help:
 	@echo "  Quality:"
 	@echo "    test             run pytest suite"
 	@echo "    test-cov         run pytest with HTML coverage report"
-	@echo "    lint             ruff: strict on src/nn_core, informational on exercises"
-	@echo "    typecheck        mypy on src/nn_core"
-	@echo "    bandit           bandit static security scan on src/"
+	@echo "    lint             ruff: strict on nn_core, informational on exercises"
+	@echo "    typecheck        mypy on nn_core"
+	@echo "    bandit           bandit static security scan on "
 	@echo "    audit            pip-audit CVE scan on requirements.txt"
 	@echo "    security         bandit + audit"
 	@echo "    pre-commit       run all pre-commit hooks on every file"
@@ -59,20 +59,20 @@ test:
 
 test-cov:
 	pytest tests/ -v --tb=short \
-	  --cov=src/nn_core \
+	  --cov=nn_core \
 	  --cov-report=term-missing \
 	  --cov-report=html:htmlcov
 
 lint:
-	ruff check src/nn_core/
+	ruff check nn_core/
 	@echo "--- exercises/ tools/ (informational) ---"
 	ruff check exercises/ tools/ || true
 
 typecheck:
-	mypy src/nn_core/ --ignore-missing-imports
+	mypy nn_core/ --ignore-missing-imports
 
 bandit:
-	bandit -r src/ -c pyproject.toml
+	bandit -r  -c pyproject.toml
 
 audit:
 	pip-audit -r requirements.txt --skip-editable

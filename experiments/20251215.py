@@ -8,7 +8,7 @@ import sys, os, argparse, datetime, math
 import numpy as np
 
 import sys as _sys, os as _os
-_ROOT = _os.path.abspath(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "src"))
+_ROOT = _os.path.abspath(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), ".."))
 if _ROOT not in _sys.path:
     _sys.path.insert(0, _ROOT)
 from nn_core.logger import ObjLogger, title_message

@@ -9,7 +9,7 @@
 
 A clean, organized study kit for building a Multi-Layer Perceptron from scratch in NumPy.
 Content is identical to the `neural_networks/` module in Robotics_Guide but reorganized to:
-- Eliminate code duplication (`ObjLogger`, `Activation_fcn` defined once in `src/nn_core/`)
+- Eliminate code duplication (`ObjLogger`, `Activation_fcn` defined once in `nn_core/`)
 - Give files descriptive names (not `ex06eng.py` or `20251224_v2.py`)
 - Separate concerns: shared core / exercises / homework / tools / experiments
 
@@ -21,13 +21,13 @@ Content is identical to the `neural_networks/` module in Robotics_Guide but reor
 - **No `*.log` files committed** -- `logs/` is gitignored, created at runtime
 - **No `*.docx` / `*.pdf` committed** -- source code only
 - **exercises/** files are kept standalone intentionally -- they show the learning progression from scratch and do NOT import from `nn_core`
-- **src/nn_core/** is the canonical, import-ready package -- use this in new scripts
+- **nn_core/** is the canonical, import-ready package -- use this in new scripts
 
 ---
 
 ## Module Map
 
-### `src/nn_core/` -- Shared Package
+### `nn_core/` -- Shared Package
 
 | File | Class / Function | Purpose |
 |------|-----------------|---------|

@@ -44,7 +44,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           pytest tests/ -v --tb=short \
-            --cov=src/nn_core \
+            --cov=nn_core \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml
 
@@ -73,7 +73,7 @@ jobs:
         run: pip install "ruff>=0.4,<1.0"
 
       - name: Lint src/nn_core (strict)
-        run: ruff check src/nn_core/
+        run: ruff check nn_core/
 
       - name: Lint exercises/ tools/ (informational — warnings only)
         run: ruff check exercises/ tools/ || true
@@ -99,7 +99,7 @@ jobs:
           pip install -e . --no-deps
 
       - name: Run mypy on nn_core
-        run: mypy src/nn_core/ --ignore-missing-imports
+        run: mypy nn_core/ --ignore-missing-imports
 
   # ── Security ──────────────────────────────────────────────────────────────
   security:

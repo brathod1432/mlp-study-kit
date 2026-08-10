@@ -8,7 +8,7 @@ import datetime
 import math
 import numpy as np
 # Resolve nn_core from src/ (works with or without pip install -e .)
-_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "src"))
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 from nn_core.logger import ObjLogger as ObjLogger2

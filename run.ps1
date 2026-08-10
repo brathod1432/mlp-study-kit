@@ -21,8 +21,8 @@ function ShowHelp {
     Write-Host "Quality:"
     Write-Host "  test             run pytest suite"
     Write-Host "  test-cov         run pytest with coverage report"
-    Write-Host "  lint             ruff on src/nn_core/ (strict) + exercises/ (info)"
-    Write-Host "  typecheck        mypy on src/nn_core/"
+    Write-Host "  lint             ruff on nn_core/ (strict) + exercises/ (info)"
+    Write-Host "  typecheck        mypy on nn_core/"
     Write-Host "  bandit           bandit static security scan"
     Write-Host "  audit            pip-audit CVE scan"
     Write-Host "  security         bandit + audit combined"
@@ -65,13 +65,13 @@ function RunTestsCov {
 }
 
 function RunLint {
-    ruff check src/nn_core/
+    ruff check nn_core/
     Write-Host "--- exercises/ tools/ (informational) ---"
     ruff check exercises/ tools/
 }
 
 function RunTypecheck {
-    mypy src/nn_core/ --ignore-missing-imports
+    mypy nn_core/ --ignore-missing-imports
 }
 
 function RunBandit {

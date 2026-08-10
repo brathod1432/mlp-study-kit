@@ -3,8 +3,8 @@ import sys
 import os
 import numpy as np
 
-# Resolve nn_core package from src/ (works whether or not pip install -e . was run)
-_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+# Resolve nn_core package from project root (flat layout — no src/ prefix)
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
