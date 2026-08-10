@@ -1,8 +1,6 @@
 #!/usr/bin/env python3.11
 
-__author__ = "brijesh_ganpatbhai.rathod.stud@pw.edu.pl"
 
-# Album No.: 309169
 
 import sys, os, argparse, datetime, math
 import numpy as np
