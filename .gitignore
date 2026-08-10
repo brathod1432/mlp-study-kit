@@ -58,8 +58,9 @@ htmlcov/
 *.swp
 *.swo
 
-# AGENTS.md is kept locally for AI agents / Devin only — not pushed to remote
+# AI agent tooling — kept locally only, not pushed to remote
 AGENTS.md
+.devin/
 
 # Environment secrets -- NEVER commit .env
 .env
