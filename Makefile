@@ -22,7 +22,7 @@ help:
 	@echo "    test-cov         run pytest with HTML coverage report"
 	@echo "    lint             ruff: strict on nn_core, informational on exercises"
 	@echo "    typecheck        mypy on nn_core"
-	@echo "    bandit           bandit static security scan on "
+	@echo "    bandit           bandit static security scan on nn_core/ modules/"
 	@echo "    audit            pip-audit CVE scan on requirements.txt"
 	@echo "    security         bandit + audit"
 	@echo "    pre-commit       run all pre-commit hooks on every file"
@@ -72,7 +72,7 @@ typecheck:
 	mypy nn_core/ --ignore-missing-imports
 
 bandit:
-	bandit -r  -c pyproject.toml
+	bandit -r nn_core/ modules/ -c pyproject.toml
 
 audit:
 	pip-audit -r requirements.txt --skip-editable

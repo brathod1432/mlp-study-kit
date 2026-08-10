@@ -7,7 +7,7 @@ import os
 import datetime
 import math
 import numpy as np
-# Resolve nn_core from src/ (works with or without pip install -e .)
+# Resolve nn_core from project root (works with or without pip install -e .)
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)

@@ -12,8 +12,8 @@ repos:
     rev: 1.7.9
     hooks:
       - id: bandit
-        args: [-r, , -c, pyproject.toml]
-        files: ^
+        args: [-r, nn_core/, -r, modules/, -c, pyproject.toml]
+        files: ^(nn_core|modules)/
 
   # ── trailing whitespace + end-of-file fixer ───────────────────────────────
   - repo: https://github.com/pre-commit/pre-commit-hooks
