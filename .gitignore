@@ -58,9 +58,10 @@ htmlcov/
 *.swp
 *.swo
 
-# AI agent tooling — kept locally only, not pushed to remote
+# AGENTS.md is a local-only AI knowledge base — not pushed to remote
 AGENTS.md
-.devin/
+# Note: .devin/skills/ IS committed (see .devin/ directory)
+# Note: .windsurf/rules/ IS committed
 
 # Environment secrets -- NEVER commit .env
 .env
