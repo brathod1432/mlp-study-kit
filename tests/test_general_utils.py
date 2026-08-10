@@ -107,11 +107,11 @@ class TestDescribeArray:
         assert describe_array([1, 2, 3]) == "3"
 
     def test_2d(self):
-        assert describe_array([[1, 2], [3, 4]]) == "2×2"
+        assert describe_array([[1, 2], [3, 4]]) == "2x2"
 
     def test_3d(self):
         arr = np.zeros((2, 3, 4))
-        assert describe_array(arr) == "2×3×4"
+        assert describe_array(arr) == "2x3x4"
 
 
 class TestPrintMatrices:

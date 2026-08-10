@@ -201,11 +201,26 @@ class NeuralNetwork:
             inputs:   the original input sample (same as passed to forward_propagate).
             l_rate:   learning rate η.
         """
+        self._update_weights_clipped(nnetwork, inputs, l_rate, grad_clip=None)
+
+    def _update_weights_clipped(
+        self,
+        nnetwork: list[dict],
+        inputs: np.ndarray,
+        l_rate: float,
+        grad_clip: float | None,
+    ) -> None:
+        """Internal weight update with optional gradient norm clipping."""
         inp = np.asarray(inputs, dtype=float).flatten()
         for i in range(1, len(nnetwork)):
             if nnetwork[i]["bias"]:
                 inp = np.append(inp, 1.0)
-            nnetwork[i]["weights"] -= l_rate * np.outer(nnetwork[i]["delta"], inp)
+            delta = nnetwork[i]["delta"]
+            if grad_clip is not None:
+                norm = float(np.linalg.norm(delta))
+                if norm > grad_clip:
+                    delta = delta * (grad_clip / norm)
+            nnetwork[i]["weights"] -= l_rate * np.outer(delta, inp)
             inp = nnetwork[i]["output"]
 
     # ------------------------------------------------------------------
@@ -240,20 +255,22 @@ class NeuralNetwork:
         y_train: list | np.ndarray,
         x_test:  list | np.ndarray | None = None,
         y_test:  list | np.ndarray | None = None,
-        l_rate:      float = 0.01,
-        n_epoch:     int   = 100,
-        loss_function: str = "mse",
-        epsilon:     float = 0.0,
-        verbose:     int   = 1,
-        save_plot:   str | None = None,
-    ) -> float:
+        l_rate:        float      = 0.01,
+        n_epoch:       int        = 100,
+        loss_function: str        = "mse",
+        epsilon:       float      = 0.0,
+        verbose:       int        = 1,
+        save_plot:     str | None = None,
+        save_history:  str | None = None,
+        grad_clip:     float | None = None,
+    ) -> tuple[float, list[float], list[float]]:
         """
         Train for up to ``n_epoch`` epochs with optional early stopping.
 
         Args:
             x_train / y_train:  training data (iterable of arrays).
             x_test  / y_test:   optional held-out test data. Required for
-                                early stopping.
+                                early stopping (``epsilon > 0``).
             l_rate:             learning rate η.
             n_epoch:            maximum training epochs.
             loss_function:      ``"mse"`` or ``"binary_cross_entropy"``.
@@ -261,14 +278,23 @@ class NeuralNetwork:
                                 stops when test-loss improvement < epsilon.
             verbose:            1 = print per-epoch loss and show/save plot;
                                 0 = silent.
-            save_plot:          if given, saves the loss history plot to this
-                                file path instead of showing an interactive
-                                window. Useful for CI / headless environments.
-                                Example: ``save_plot="loss.png"``.
+            save_plot:          file path to save the loss-history plot instead
+                                of showing an interactive window.
+                                E.g. ``save_plot="outputs/loss.png"``.
                                 Set ``MPLBACKEND=Agg`` to suppress all windows.
+            save_history:       file path to export loss history as CSV.
+                                Columns: ``epoch, loss_train[, loss_test]``.
+                                E.g. ``save_history="outputs/history.csv"``.
+            grad_clip:          if set, clips per-layer gradient norm to this
+                                value before the weight update, preventing
+                                exploding gradients.  ``None`` = no clipping.
 
         Returns:
-            Final training loss of the last completed epoch.
+            ``(final_train_loss, history_train, history_test)``
+
+        Raises:
+            RuntimeError: if training loss becomes NaN (diverged network).
+                          Reduce the learning rate or add gradient clipping.
         """
         history_train: list[float] = []
         history_test:  list[float] = []
@@ -282,11 +308,19 @@ class NeuralNetwork:
                 y_arr = np.asarray(y_row, dtype=float)
                 self.forward_propagate(nnetwork, x_arr)
                 self.backward_propagate(loss_function, nnetwork, y_arr)
-                self.update_weights(nnetwork, x_arr, l_rate)
+                self._update_weights_clipped(nnetwork, x_arr, l_rate, grad_clip)
                 err_sum += float(
                     np.sum(self.loss.output(loss_function, y_arr, nnetwork[-1]["output"]))
                 )
             history_train.append(err_sum / len(x_train))
+
+            # ── NaN divergence guard ─────────────────────────────────────
+            if np.isnan(history_train[-1]):
+                raise RuntimeError(
+                    f"Training diverged (loss=NaN) at epoch {epoch + 1}. "
+                    "Try a smaller learning rate, gradient clipping (grad_clip=1.0), "
+                    "or check your data for inf/nan values."
+                )
 
             # ── test pass (optional) ─────────────────────────────────────
             if use_test:
@@ -318,11 +352,15 @@ class NeuralNetwork:
                     print(f"Early stopping at epoch {epoch + 1} (improvement < {epsilon})")
                     break
 
+        # ── optional CSV history export ───────────────────────────────────
+        if save_history:
+            self._save_history_csv(history_train, history_test, save_history)
+
         # ── optional loss plot ───────────────────────────────────────────
         if verbose > 0:
             self._plot_history(history_train, history_test, save_plot)
 
-        return history_train[-1]
+        return history_train[-1], history_train, history_test
 
     # ------------------------------------------------------------------
     # Weight persistence
@@ -330,58 +368,147 @@ class NeuralNetwork:
 
     def save_weights(self, nnetwork: list[dict], path: str) -> None:
         """
-        Save the trained weight matrices to a NumPy ``.npy`` file.
+        Save trained weight matrices to a NumPy ``.npz`` archive.
 
-        Only the weight arrays are saved (not biases flags or other
-        layer metadata). Load back with :meth:`load_weights`.
+        Uses ``np.savez`` (no pickle) so the file is safe to share and
+        load on any machine without risk of arbitrary code execution.
+
+        The file extension ``.npz`` will be appended automatically if
+        *path* does not already end with it.
 
         Args:
             nnetwork: trained layer list.
-            path:     file path, e.g. ``"my_model.npy"``.
+            path:     file path, e.g. ``"outputs/my_model"``
+                      (saved as ``my_model.npz``).
 
         Example::
 
-            model.train(net, X_train, Y_train, ...)
-            model.save_weights(net, "weights.npy")
+            final_loss, _, _ = model.train(net, X_train, Y_train, ...)
+            model.save_weights(net, "outputs/regression_weights")
         """
-        weights = np.array(
-            [layer["weights"] for layer in nnetwork[1:]],
-            dtype=object,
-        )
-        np.save(path, weights, allow_pickle=True)
-        print(f"[NeuralNetwork] Weights saved to: {path}")
+        path = str(path)
+        weights_dict = {
+            f"layer_{i}": layer["weights"]
+            for i, layer in enumerate(nnetwork[1:], start=1)
+        }
+        np.savez(path, **weights_dict)   # no allow_pickle — pure array data
+        npz_path = path if path.endswith(".npz") else path + ".npz"
+        print(f"[NeuralNetwork] Weights saved to: {npz_path}")
 
     def load_weights(self, nnetwork: list[dict], path: str) -> None:
         """
-        Load previously saved weight matrices into an existing network.
+        Load weight matrices from a ``.npz`` file into an existing network.
 
-        The network must have been created with the same structure as
-        when the weights were saved (shapes must match exactly).
+        The network must have the same architecture (same number of layers
+        and matching weight shapes) as when the weights were saved.
 
         Args:
             nnetwork: layer list (created by :meth:`create_network`).
             path:     file path produced by :meth:`save_weights`.
+                      The ``.npz`` extension is added automatically if absent.
+
+        Raises:
+            ValueError: if layer count or any weight shape does not match.
 
         Example::
 
-            model.load_weights(net, "weights.npy")
+            model.load_weights(net, "outputs/regression_weights")
             preds = model.predict(net, X_test)
         """
-        weights = np.load(path, allow_pickle=True)
-        if len(weights) != len(nnetwork) - 1:
+        path = str(path)
+        npz_path = path if path.endswith(".npz") else path + ".npz"
+        data = np.load(npz_path)          # safe — no pickle
+        n_dense = len(nnetwork) - 1
+        if len(data) != n_dense:
             raise ValueError(
-                f"Weight count mismatch: file has {len(weights)} layers, "
-                f"network has {len(nnetwork) - 1} dense layers."
+                f"Weight count mismatch: file has {len(data)} layers, "
+                f"network has {n_dense} dense layers."
             )
-        for i, w in enumerate(weights):
+        for i in range(n_dense):
+            w = data[f"layer_{i + 1}"]
             expected = nnetwork[i + 1]["weights"].shape
-            if np.asarray(w).shape != expected:
+            if w.shape != expected:
                 raise ValueError(
                     f"Shape mismatch at layer {i + 1}: "
-                    f"file={np.asarray(w).shape}, network={expected}"
+                    f"file={w.shape}, network={expected}."
                 )
-            nnetwork[i + 1]["weights"] = np.asarray(w, dtype=float)
-        print(f"[NeuralNetwork] Weights loaded from: {path}")
+            nnetwork[i + 1]["weights"] = w.astype(float)
+        print(f"[NeuralNetwork] Weights loaded from: {npz_path}")
+
+    # ------------------------------------------------------------------
+    # Model summary
+    # ------------------------------------------------------------------
+
+    def summary(self, nnetwork: list[dict] | None = None) -> str:
+        """
+        Return a human-readable architecture summary with parameter counts.
+
+        Args:
+            nnetwork: layer list; if ``None``, uses ``self.nnetwork``.
+
+        Returns:
+            Multi-line string with one row per layer plus total parameter count.
+
+        Example::
+
+            net = model.create_network(structure)
+            print(model.summary(net))
+            # NeuralNetwork Summary
+            # ================================================
+            #   [0] input    units=1
+            #   [1] dense    units=32  act=tanh    bias=True   params=64
+            #   [2] dense    units=1   act=linear  bias=True   params=33
+            # ================================================
+            #   Total trainable parameters: 97
+        """
+        net = nnetwork if nnetwork is not None else self.nnetwork
+        if not net:
+            return "NeuralNetwork(uninitialised)"
+
+        total_params = 0
+        lines = ["NeuralNetwork Summary", "=" * 56]
+        for i, layer in enumerate(net):
+            if "weights" not in layer:
+                lines.append(f"  [{i}] input    units={layer.get('units', '?')}")
+            else:
+                w      = layer["weights"]
+                params = w.size
+                total_params += params
+                act    = layer.get("activation_function", "?")
+                bias   = layer.get("bias", False)
+                lines.append(
+                    f"  [{i}] dense    units={w.shape[0]:<4}  "
+                    f"act={act:<10}  bias={str(bias):<5}  "
+                    f"params={params:,}"
+                )
+        lines.append("=" * 56)
+        lines.append(f"  Total trainable parameters: {total_params:,}")
+        return "\n".join(lines)
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _save_history_csv(
+        history_train: list[float],
+        history_test:  list[float],
+        path: str,
+    ) -> None:
+        """Export training history to a CSV file."""
+        import csv  # noqa: PLC0415
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            header = ["epoch", "loss_train"]
+            if history_test:
+                header.append("loss_test")
+            writer.writerow(header)
+            for i, loss in enumerate(history_train):
+                row = [i + 1, f"{loss:.8f}"]
+                if history_test and i < len(history_test):
+                    row.append(f"{history_test[i]:.8f}")
+                writer.writerow(row)
+        print(f"[NeuralNetwork] History saved to: {path}")
 
     # ------------------------------------------------------------------
     # Representation

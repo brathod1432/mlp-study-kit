@@ -87,7 +87,7 @@ class TestPlotDecisionBoundary:
         X = np.array([[0.0, 0.0], [0.1, 0.1], [2.0, 2.0], [2.1, 2.1]])
         Y = np.array([0.0, 0.0, 1.0, 1.0])
 
-        model.train(net, X, Y, l_rate=0.1, n_epoch=10, verbose=0)
+        model.train(net, X, Y, l_rate=0.1, n_epoch=10, verbose=0)  # returns tuple, ignore here
 
         path = str(tmp_path / "boundary.png")
         plot_decision_boundary(model, net, X, Y, h=0.5, save_path=path)

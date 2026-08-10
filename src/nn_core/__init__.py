@@ -17,4 +17,7 @@ from nn_core.logger import ObjLogger
 from nn_core.losses import LossFn
 from nn_core.network import NeuralNetwork
 
-__all__ = ["ActivationFn", "LossFn", "NeuralNetwork", "ObjLogger"]
+__version__ = "0.4.0"
+__author__  = "Brijesh Rathod"
+
+__all__ = ["ActivationFn", "LossFn", "NeuralNetwork", "ObjLogger", "__version__"]

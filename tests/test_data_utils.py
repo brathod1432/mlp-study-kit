@@ -1,8 +1,12 @@
 """Tests for modules.data_utils."""
+import csv
+import os
 import numpy as np
 import pytest
 
 from modules.data_utils import (
+    k_fold_split,
+    load_csv,
     make_classification_data,
     make_linear_data,
     make_regression_data,
@@ -141,3 +145,113 @@ class TestNormalize:
         X = np.array([[1, 2, 3]], dtype=np.int32)
         X_n, _, _ = normalize(X)
         assert X_n.dtype == np.float64
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# load_csv
+# ──────────────────────────────────────────────────────────────────────────────
+
+class TestLoadCsv:
+    def _write_csv(self, tmp_path, rows, header=None):
+        p = tmp_path / "data.csv"
+        with open(p, "w", newline="") as f:
+            writer = csv.writer(f)
+            if header:
+                writer.writerow(header)
+            writer.writerows(rows)
+        return str(p)
+
+    def test_basic_load(self, tmp_path):
+        path = self._write_csv(tmp_path,
+                               [[1.0, 2.0], [3.0, 4.0]],
+                               header=["x", "y"])
+        X, Y = load_csv(path)
+        assert X.shape == (2, 1)
+        assert Y.shape == (2, 1)
+        np.testing.assert_almost_equal(Y.flatten(), [2.0, 4.0])
+
+    def test_no_header(self, tmp_path):
+        path = self._write_csv(tmp_path, [[1.0, 5.0], [2.0, 6.0]])
+        X, Y = load_csv(path, has_header=False)
+        assert X.shape == (2, 1)
+
+    def test_multi_feature(self, tmp_path):
+        path = self._write_csv(tmp_path,
+                               [[1, 2, 3, 99], [4, 5, 6, 88]],
+                               header=["a", "b", "c", "target"])
+        X, Y = load_csv(path, feature_cols=[0, 1, 2], target_col=3)
+        assert X.shape == (2, 3)
+        assert Y.shape == (2, 1)
+
+    def test_last_col_default_target(self, tmp_path):
+        path = self._write_csv(tmp_path, [[1, 2, 3]], header=["a","b","c"])
+        X, Y = load_csv(path)
+        assert X.shape == (1, 2)   # cols 0, 1
+        np.testing.assert_almost_equal(Y[0, 0], 3.0)
+
+    def test_float64_dtype(self, tmp_path):
+        path = self._write_csv(tmp_path, [[1, 2]], header=["x","y"])
+        X, Y = load_csv(path)
+        assert X.dtype == np.float64
+        assert Y.dtype == np.float64
+
+    def test_missing_file_raises(self):
+        with pytest.raises(FileNotFoundError):
+            load_csv("/nonexistent/path/data.csv")
+
+    def test_non_numeric_raises(self, tmp_path):
+        p = tmp_path / "bad.csv"
+        p.write_text("x,y\nhello,1.0\n")
+        with pytest.raises(ValueError, match="non-numeric"):
+            load_csv(str(p))
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# k_fold_split
+# ──────────────────────────────────────────────────────────────────────────────
+
+class TestKFoldSplit:
+    def test_returns_k_folds(self):
+        X = np.ones((50, 2))
+        T = np.ones((50, 1))
+        folds = k_fold_split(X, T, k=5)
+        assert len(folds) == 5
+
+    def test_train_val_sizes(self):
+        n, k = 100, 5
+        X = np.ones((n, 1))
+        T = np.ones((n, 1))
+        for Xtr, Ttr, Xval, Tval in k_fold_split(X, T, k=k):
+            assert Xtr.shape[0] + Xval.shape[0] == n
+            assert Xval.shape[0] == n // k
+
+    def test_all_samples_covered(self):
+        n = 30
+        X = np.arange(n, dtype=float).reshape(-1, 1)
+        T = np.zeros((n, 1))
+        folds = k_fold_split(X, T, k=3)
+        all_val = np.concatenate([Xval.flatten() for _, _, Xval, _ in folds])
+        assert len(all_val) == n
+        assert set(all_val.tolist()) == set(range(n))
+
+    def test_reproducible(self):
+        X = np.arange(20, dtype=float).reshape(-1, 1)
+        T = np.zeros((20, 1))
+        f1 = k_fold_split(X, T, k=4, seed=0)
+        f2 = k_fold_split(X, T, k=4, seed=0)
+        for (Xtr1, _, Xv1, _), (Xtr2, _, Xv2, _) in zip(f1, f2):
+            np.testing.assert_array_equal(Xv1, Xv2)
+
+    def test_invalid_k_raises(self):
+        X = np.ones((10, 1))
+        T = np.ones((10, 1))
+        with pytest.raises(ValueError, match="k must be between"):
+            k_fold_split(X, T, k=1)
+        with pytest.raises(ValueError, match="k must be between"):
+            k_fold_split(X, T, k=11)
+
+    def test_shape_mismatch_raises(self):
+        X = np.ones((10, 1))
+        T = np.ones((9, 1))
+        with pytest.raises(ValueError, match="rows"):
+            k_fold_split(X, T, k=3)

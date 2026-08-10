@@ -122,13 +122,13 @@ class TestRepr:
 class TestSaveLoadWeights:
     def test_save_load_roundtrip(self, tmp_path, model):
         net = model.create_network(STRUCTURE_SIMPLE)
-        # Store original weights
         original = [layer["weights"].copy() for layer in net[1:]]
 
-        path = str(tmp_path / "weights.npy")
+        # save_weights now uses .npz format (no pickle)
+        path = str(tmp_path / "weights")   # extension added automatically
         model.save_weights(net, path)
 
-        # Scramble weights
+        # Scramble weights then reload
         for layer in net[1:]:
             layer["weights"] = np.zeros_like(layer["weights"])
 
@@ -137,19 +137,137 @@ class TestSaveLoadWeights:
         for i, layer in enumerate(net[1:]):
             np.testing.assert_array_almost_equal(layer["weights"], original[i])
 
+    def test_npz_file_created(self, tmp_path, model):
+        net  = model.create_network(STRUCTURE_SIMPLE)
+        path = str(tmp_path / "w")
+        model.save_weights(net, path)
+        import os
+        assert os.path.isfile(path + ".npz")
+
+    def test_load_with_explicit_npz_extension(self, tmp_path, model):
+        net  = model.create_network(STRUCTURE_SIMPLE)
+        path = str(tmp_path / "weights")
+        model.save_weights(net, path)
+        # Loading with explicit .npz should also work
+        model.load_weights(net, path + ".npz")
+
     def test_load_shape_mismatch_raises(self, tmp_path, model):
-        net = model.create_network(STRUCTURE_SIMPLE)
-        path = str(tmp_path / "weights.npy")
+        net  = model.create_network(STRUCTURE_SIMPLE)
+        path = str(tmp_path / "weights")
         model.save_weights(net, path)
 
-        # Build network with different shape
         net2 = model.create_network([
             {"type": "input", "units": 3},
-            {"type": "dense", "units": 4, "activation_function": "tanh", "bias": False},
-            {"type": "dense", "units": 1, "activation_function": "linear", "bias": False},
+            {"type": "dense", "units": 4, "activation_function": "tanh",    "bias": False},
+            {"type": "dense", "units": 1, "activation_function": "linear",  "bias": False},
         ])
         with pytest.raises(ValueError, match="Shape mismatch"):
             model.load_weights(net2, path)
+
+
+class TestSummary:
+    def test_summary_contains_param_count(self, model):
+        net = model.create_network(STRUCTURE_SIMPLE)
+        s = model.summary(net)
+        assert "Total trainable parameters" in s
+        assert "params=" in s
+
+    def test_summary_shows_all_layers(self, model):
+        net = model.create_network(STRUCTURE_SIMPLE)
+        s = model.summary(net)
+        assert "tanh" in s
+        assert "linear" in s
+        assert "input" in s
+
+    def test_summary_uninitialised(self):
+        m = NeuralNetwork()
+        assert "uninitialised" in m.summary()
+
+    def test_summary_param_count_correct(self):
+        """1 input → 4 tanh (bias=False) → 1 linear (bias=False).
+        Layer1 weights: (4,1)=4, Layer2 weights: (1,4)=4  → total 8.
+        """
+        m = NeuralNetwork()
+        structure = [
+            {"type": "input",  "units": 1},
+            {"type": "dense",  "units": 4, "activation_function": "tanh",   "bias": False},
+            {"type": "dense",  "units": 1, "activation_function": "linear", "bias": False},
+        ]
+        net = m.create_network(structure)
+        s = m.summary(net)
+        assert "8" in s   # total params
+
+
+class TestGradientClipping:
+    def test_grad_clip_does_not_crash(self):
+        np.random.seed(7)
+        m = NeuralNetwork()
+        structure = [
+            {"type": "input",  "units": 1},
+            {"type": "dense",  "units": 4, "activation_function": "tanh",   "bias": True},
+            {"type": "dense",  "units": 1, "activation_function": "linear", "bias": True},
+        ]
+        net = m.create_network(structure)
+        X = np.linspace(-1, 1, 10).reshape(-1, 1)
+        Y = 2.0 * X
+        loss, _, _ = m.train(net, X, Y, l_rate=0.01, n_epoch=5,
+                             verbose=0, grad_clip=1.0)
+        assert not np.isnan(loss)
+
+
+class TestSaveHistory:
+    def test_csv_created(self, tmp_path):
+        import os
+        m   = NeuralNetwork()
+        structure = [
+            {"type": "input",  "units": 1},
+            {"type": "dense",  "units": 4, "activation_function": "tanh",   "bias": True},
+            {"type": "dense",  "units": 1, "activation_function": "linear", "bias": True},
+        ]
+        net = m.create_network(structure)
+        X = np.linspace(-1, 1, 10).reshape(-1, 1)
+        Y = 2.0 * X
+        csv_path = str(tmp_path / "history.csv")
+        m.train(net, X, Y, l_rate=0.01, n_epoch=5, verbose=0,
+                save_history=csv_path)
+        assert os.path.isfile(csv_path)
+
+    def test_csv_has_correct_columns(self, tmp_path):
+        import csv, os
+        m   = NeuralNetwork()
+        structure = [
+            {"type": "input",  "units": 1},
+            {"type": "dense",  "units": 2, "activation_function": "tanh",   "bias": False},
+            {"type": "dense",  "units": 1, "activation_function": "linear", "bias": False},
+        ]
+        net = m.create_network(structure)
+        X   = np.linspace(-1, 1, 8).reshape(-1, 1)
+        Y   = X
+        X_te, Y_te = X[:2], Y[:2]
+        csv_path = str(tmp_path / "h.csv")
+        m.train(net, X, Y, X_te, Y_te, l_rate=0.01, n_epoch=3,
+                verbose=0, save_history=csv_path)
+        with open(csv_path) as f:
+            header = next(csv.reader(f))
+        assert header == ["epoch", "loss_train", "loss_test"]
+
+
+class TestNaNDetection:
+    def test_nan_raises_runtime_error(self):
+        """Inject NaN into weights to force NaN loss."""
+        m   = NeuralNetwork()
+        structure = [
+            {"type": "input",  "units": 1},
+            {"type": "dense",  "units": 2, "activation_function": "tanh",   "bias": False},
+            {"type": "dense",  "units": 1, "activation_function": "linear", "bias": False},
+        ]
+        net = m.create_network(structure)
+        # Corrupt weights with NaN to force divergence
+        net[1]["weights"][:] = np.nan
+        X = np.linspace(-1, 1, 5).reshape(-1, 1)
+        Y = X
+        with pytest.raises(RuntimeError, match="NaN"):
+            m.train(net, X, Y, l_rate=0.1, n_epoch=3, verbose=0)
 
 
 class TestTraining:
@@ -172,9 +290,10 @@ class TestTraining:
             for x, y in zip(X, Y)
         ]))
 
-        # train 200 epochs silently
-        final_loss = model.train(net, X, Y, l_rate=0.05, n_epoch=200,
-                                 loss_function="mse", verbose=0)
+        # train() now returns (final_loss, history_train, history_test)
+        final_loss, history_tr, history_te = model.train(
+            net, X, Y, l_rate=0.05, n_epoch=200, loss_function="mse", verbose=0
+        )
 
         assert final_loss < initial_loss, (
             f"Expected loss to decrease, got initial={initial_loss:.4f} final={final_loss:.4f}"

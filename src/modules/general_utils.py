@@ -158,14 +158,16 @@ def describe_array(values: object) -> str:
 
     Examples::
 
-        describe_array(5.0)           # → "scalar"
-        describe_array([1, 2, 3])     # → "1×3"
-        describe_array([[1, 2],[3,4]])# → "2×2"
+        describe_array(5.0)           # -> "scalar"
+        describe_array([1, 2, 3])     # -> "3"
+        describe_array([[1, 2],[3,4]])# -> "2x2"
+        describe_array(np.zeros((2,3,4))) # -> "2x3x4"
     """
     arr = np.asarray(values)
     if arr.ndim == 0:
         return "scalar"
-    return "×".join(str(d) for d in arr.shape)
+    # Use plain ASCII "x" — safe on all terminals including Windows cp1252
+    return "x".join(str(d) for d in arr.shape)
 
 
 def _select_display_slice(array: np.ndarray) -> tuple[np.ndarray, str]:
@@ -173,9 +175,9 @@ def _select_display_slice(array: np.ndarray) -> tuple[np.ndarray, str]:
     if array.ndim == 0:
         return array.reshape(1, 1), "scalar"
     if array.ndim == 1:
-        return array.reshape(1, -1), f"1×{array.shape[0]}"
+        return array.reshape(1, -1), f"1x{array.shape[0]}"
     if array.ndim == 2:
-        return array, f"{array.shape[0]}×{array.shape[1]}"
+        return array, f"{array.shape[0]}x{array.shape[1]}"
     # higher-dimensional: show the first 2-D slice
     selector: tuple = (0,) * (array.ndim - 2) + (slice(None), slice(None))
     display = array[selector]

@@ -22,7 +22,8 @@
 #   sudo apt install python3-dev   # Debian/Ubuntu
 #   glibc >= 2.17 is required (present on all modern distros)
 #
-# numpy is pinned to <2.0 here because TF 2.14 requires it.
+# numpy is pinned to <2.0 because TF 2.14 requires it.
+# nn_core itself works with numpy 1.x and 2.x — only TF forces this constraint.
 numpy>=1.26,<2.0
 tensorflow>=2.14,<2.16
 keras>=2.14,<3.0

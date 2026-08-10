@@ -25,7 +25,8 @@
 # TF 2.14–2.15 are the last versions with native Windows support.
 # TF >= 2.16 requires WSL2 on Windows for GPU; CPU still works.
 #
-# numpy is pinned to <2.0 here because TF 2.14 requires it.
+# numpy is pinned to <2.0 because TF 2.14 requires it.
+# nn_core itself works with numpy 1.x and 2.x — only TF forces this constraint.
 numpy>=1.26,<2.0
 tensorflow>=2.14,<2.16
 keras>=2.14,<3.0

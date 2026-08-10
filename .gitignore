@@ -71,3 +71,7 @@ notebooks/activations.png
 notebooks/data_preview.png
 notebooks/trained_weights.npy
 notebooks/.ipynb_checkpoints/
+
+# Generated outputs (plots, weights, CSVs) — keep the directory, ignore contents
+outputs/*
+!outputs/.gitkeep
